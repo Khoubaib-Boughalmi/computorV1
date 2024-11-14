@@ -10,7 +10,6 @@ def get_equation_monomials(argv):
   equation_monomials = re.split('(?=[+\-])', sys.argv[1])
   if equation_monomials[0] == '': # escape the first '' element as result of spliting first monomial
       equation_monomials = equation_monomials[1:]
-  print(equation_monomials)
   return equation_monomials
 
 def get_equal_sign_position(equation_monomials):
@@ -21,7 +20,6 @@ def get_equal_sign_position(equation_monomials):
       equation_monomials[index] = equation_monomials[index].strip(" =") 
       return index + 1
     if '=' in value:
-      print("ajsdkashdkjashd")
       tmp_monomial = value.split("=")
       del equation_monomials[index]
       equation_monomials[index:index] = tmp_monomial
@@ -61,7 +59,6 @@ def check_coefficient(coefficient):
 
 def handle_exponent(equation_dict, monomial):
   if len(monomial) < 2:
-    print(monomial)
     display_error_and_exit("SYNTAX ERROR: WRONG SIGN") # exp: 2 * x^2 or 2 * X^4
   sign = 1 if monomial[0] == '+' else -1
   match monomial[1:].strip():
@@ -100,7 +97,6 @@ def convert_equation_monomials_list_to_dict(equation_monomials):
       except:
         display_error_and_exit("SYNTAX ERROR: STRAY *")
     else:
-      print(monomial)
       if monomial[1:].isnumeric():
         equation_dict[0].append(int(monomial))
       else:
@@ -116,13 +112,10 @@ def main():
   check_sign_errors(equation_monomials) #exp: +-+5
   append_plus_sign_first_monominal(equation_monomials)
   equal_sign_index = get_equal_sign_position(equation_monomials)
-  print(equation_monomials)
   if equal_sign_index < 1:
     display_error_and_exit("ERROR EQUAL SIGN")
   
   switch_rhs_monomial_sign(equation_monomials, equal_sign_index)
-  print(equation_monomials)
   equation_dict = convert_equation_monomials_list_to_dict(equation_monomials)
   print(equation_dict)
-
 main()
