@@ -4,9 +4,48 @@ import sys
 def display_error_and_exit(error_msg):
   print(error_msg, file=sys.stderr)
   sys.exit(1)
+
+def is_space(x):
+  return x == ' '
+
+def is_number(x):
+  return x.isnumeric()
+
+def is_sign(x):
+  return x == '+' or x == '-'
+
+def is_equal_sign(x):
+  return x == '='
+
+def is_exponent(input, pos):
+  if len(input) - pos < 3:
+    return False
+  return input[pos: pos+3] == 'X^0' or input[pos: pos+3] == 'X^1' or input[pos: pos+3] == 'X^2'
+
+def parse_input(input):
+  i = 0
+  while i < len(input):
+    while i < len(input) and is_space(input[i]):
+      i += 1
+    if i < len(input) and is_sign(input[i]):
+      i += 1
+      while i < len(input) and is_space(input[i]):
+        i+= 1
+      if i < len(input) and not is_number(input[i]) and not is_exponent(input, i):
+        return False
+    if i < len(input) and is_number(input[i]):
+      while i < len(input) and is_number(input[i]):
+        i += 1
+    if i < len(input) and is_equal_sign(input[i]):
+      i += 1
+      while i < len(input) and is_space(input[i]):
+        i += 1
+      if i < len(input) and not is_number(input[i]) and not is_exponent(input, i) and not is_sign(input[i]):
+        return False
+    i += 1
+  return True
   
 def get_equation_monomials(argv):
-  # equation = sys.argv[1].replace(' ', '-')
   equation_monomials = re.split('(?=[+\-])', sys.argv[1])
   if equation_monomials[0] == '': # escape the first '' element as result of spliting first monomial
       equation_monomials = equation_monomials[1:]
@@ -23,7 +62,7 @@ def get_equal_sign_position(equation_monomials):
       tmp_monomial = value.split("=")
       del equation_monomials[index]
       equation_monomials[index:index] = tmp_monomial
-      return index
+      return index + 1
   return -1
 
 def append_plus_sign_first_monominal(equation_monomials):
@@ -97,8 +136,9 @@ def convert_equation_monomials_list_to_dict(equation_monomials):
       except:
         display_error_and_exit("SYNTAX ERROR: STRAY *")
     else:
-      if monomial[1:].isnumeric():
-        equation_dict[0].append(int(monomial))
+      x = monomial[1:].strip()
+      if x.isnumeric():
+        equation_dict[0].append(int(monomial.replace(' ', '')))
       else:
         handle_exponent(equation_dict, monomial)
 
@@ -107,7 +147,8 @@ def convert_equation_monomials_list_to_dict(equation_monomials):
 def main():
   if len(sys.argv) > 2:
     display_error_and_exit("WRONG NUMBER OF ARGUMENTS")
-
+  if not parse_input(sys.argv[1]):
+    display_error_and_exit("SYNTAX ERROR PARSER")    
   equation_monomials = get_equation_monomials(sys.argv)
   check_sign_errors(equation_monomials) #exp: +-+5
   append_plus_sign_first_monominal(equation_monomials)
