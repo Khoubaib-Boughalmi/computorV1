@@ -192,23 +192,29 @@ def parse_input(equation: str) -> list:
             raise Exception("Invalid signs in the equation")
         lhs_objs = create_components_obj(lhs_signed_components)
         rhs_objs = create_components_obj(rhs_signed_components)
+        print("steps:", [lhs_objs, rhs_objs])
         return [lhs_objs, rhs_objs]
     except Exception as e:
         raise Exception(str(e))
+
+def calculate_gcd(a, b):
+    if b == 0:
+        return absolute(a)
+    return calculate_gcd(b, a % b)
 
 def reduce_fraction(numerator, denominator) -> str:
     if isinstance(numerator, float) and not numerator.is_integer():
         return f"{(numerator / denominator):.6f}"
     numerator = int(numerator)
     denominator = int(denominator)
-    gcd = math.gcd(numerator, denominator)
+    gcd = calculate_gcd(numerator, denominator)
     num = numerator // gcd
     den = denominator // gcd
     if den == 1:
         return str(num)
     if den > 99:
         return f"{(numerator / denominator):.6f}"
-    return f"{abs(num)}/{abs(den)}" if num * den > 0 else f"-{abs(num)}/{abs(den)}"
+    return f"{absolute(num)}/{absolute(den)}" if num * den > 0 else f"-{absolute(num)}/{absolute(den)}"
 
 def reverse_sign_rhs(elements: list[dict]) -> list:
     for elem in elements:
@@ -220,12 +226,31 @@ def merge_components(elements: list[dict]) -> list:
         merged_components[component["exponent"]] += component["coeff"]
     return merged_components
 
+def power(base, exp):
+    if exp < 0:
+        base, exp = 1 / base, -exp
+    
+    result = 1
+    for _ in range(exp):
+        result *= base
+    
+    return result
+
+
+def absolute(num):
+    return -num if num < 0 else num
+
+def sqrt_exp(n):
+    if n < 0:
+        raise ValueError("Cannot compute square root of a negative number")
+    return power(n, 0.5)
+
 def solve_complex_solution(delta: float, components: dict) -> None:
 
     real_component = -components[1] / (2 * components[2])
-    imaginary_component = math.sqrt(abs(delta)) / (2 * components[2])
-    print(f"{real_component:0.6f} + {abs(imaginary_component):.6f}i")
-    print(f"{real_component:0.6f} - {abs(imaginary_component):.6f}i")
+    imaginary_component = math.sqrt(absolute(delta)) / (2 * components[2])
+    print(f"{real_component:0.6f} + {absolute(imaginary_component):.6f}i")
+    print(f"{real_component:0.6f} - {absolute(imaginary_component):.6f}i")
 
 def solve_second_deg_equation(components: dict) -> None:
     delta = components[1]**2 - 4 * components[2] * components[0]
@@ -291,7 +316,7 @@ def display_reduced_function(components: dict) -> None:
             else:
                 print(" - ", end="")
         if components[i] != 0:
-            print(f"{abs(components[i])} * X^{i}", end="")
+            print(f"{absolute(components[i])} * X^{i}", end="")
     print(" = 0")
 
 def main():
