@@ -6,7 +6,8 @@ import math
 # 5 * X^0 + 4 * X^1 - 9.3 * X^2 = 1 * X^0
 # 8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = 3 * X^0
 # 8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^^3 = X^0 - 3
-# 8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 = X^0 - 3 - X
+# 8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 - X = X^0 - 3 - X
+# 8 - 6 * X + 0 * X^2 - 5.6 * X^2 - 1 = 1 - 3 - X
 
 # 8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^^3 = X^0 - 3
 # 8 * X^0 - 6 * X^1 + 0 * X^2.5 - 5.6 * X^3 = X^0 - 3
@@ -15,9 +16,14 @@ import math
 # 8 * X^0 - 6 * XX^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3
 # 8 * X^0 - 6 * CX^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3
 
+# 1337 * X^2 + 42 * X^0 = 1337 * X^2 +42 * X^0
 
+# complex solution
+# 12 * X^2 + 7 * X + 10 = 0
+
+# fractional
+# 12 * X^2 + 7 * X - 10 = 0
 # 4*X+7=2
-
 """
 
     parsing mechanism ==> * validate polynomial
@@ -115,7 +121,7 @@ def get_exponent(variable: str) -> int:
         return 1
     exponent = int(variable[2:])
     if exponent > 2:
-        raise Exception("Only second degree polynomials are allowed")
+        raise Exception("Polynomials must be of degree 2 or lower.")
     return exponent
 
 def create_two_elements_obj(elements: list[str]) -> dict:
@@ -224,7 +230,10 @@ def solve_complex_solution(delta: float, components: dict) -> None:
 
 def solve_second_deg_equation(components: dict) -> None:
     delta = components[1]**2 - 4 * components[2] * components[0]
-    print(f"Discriminant is strictly {'positive' if delta > 0 else 'negative'}, the two solutions are:")
+    if delta == 0:
+        print(f"Discriminant is null, the only solution is:")
+    else:
+        print(f"Discriminant is strictly {'positive' if delta > 0 else 'negative'}, the two solutions are:")
     if delta < 0:
         solve_complex_solution(delta, components)
     else:
@@ -270,8 +279,6 @@ def is_null_function(components: dict) -> bool:
             isNull = False
     return isNull
 
-# 1337 * X^2 + 42 * X^0 = 1337 * X^2 +42 * X^0
-# 4*X+7=2
 def display_reduced_function(components: dict) -> None:
     print("Reduced form: ", end="")
     if is_null_function(components):
