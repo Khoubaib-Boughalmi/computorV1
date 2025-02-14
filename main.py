@@ -1,6 +1,6 @@
 from re import split, match
 from typing import Optional
-from math import sqrt
+import math
 # Examples:
 # 5 + 4 * X + X^2= X^2
 # 5 * X^0 + 4 * X^1 - 9.3 * X^2 = 1 * X^0
@@ -139,9 +139,9 @@ def create_single_element_obj(element: str):
         raise Exception("Wrong coeff or variable", element)
     return element_obj
 
-#  8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3 - X
-#  8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3 +X -X
-#  8 * X^-1 - 6 * X^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3 +X -X
+#  8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 = X^0 - 3 - X
+#  8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 = X^0 - 3 +X -X
+#  8 * X^-1 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 = X^0 - 3 +X -X
 #  8 * X^1 - 6 * X^1 - 0 * X^2 - 5.6 * X^3 = X^0 - 3 +X -X
 #  8 * X^1 - 6 * X^1 - 0 -X^2 - 5.6 * X^3 = X^0 - 3 + X
 #  8 * X^1 - 6 * X^1 - 0 -X^2 - 5.6 * X^3 = X^0 - 3- + X
@@ -183,14 +183,29 @@ def parse_input(equation: str) -> list:
             raise Exception("Invalid signs in the equation")
         lhs_objs = create_components_obj(lhs_signed_components)
         rhs_objs = create_components_obj(rhs_signed_components)
-        print([lhs_objs, rhs_objs])
+        print("steps:", [lhs_objs, rhs_objs])
         return [lhs_objs, rhs_objs]
     except Exception as e:
         raise Exception(str(e))
 
+def reduce_fraction(numerator, denominator) -> str:
+    if isinstance(numerator, float) and not numerator.is_integer():
+        return f"{(numerator / denominator):.6f}"
+    numerator = int(numerator)
+    denominator = int(denominator)
+    gcd = math.gcd(numerator, denominator)
+    num = numerator // gcd
+    den = denominator // gcd
+    if den == 1:
+        return str(num)
+    if den > 99:
+        return f"{(numerator / denominator):.6f}"
+    return f"{num}/{den}"
+
 def reverse_sign_rhs(elements: list[dict]) -> list:
     for elem in elements:
         elem["coeff"] *= -1
+
 
 def merge_components(elements: list[dict]) -> list:
     merged_components = {0:0, 1:0, 2:0}
@@ -198,27 +213,62 @@ def merge_components(elements: list[dict]) -> list:
         merged_components[component["exponent"]] += component["coeff"]
     return merged_components
 
-def solve_second_deg_equation(components):
-    print(components)
-    delta = components[1]**2 - 4 * components[2] * components[0]
-    print(delta)
-    if delta < 0:
-        print("No solutions")
-    else:
-        x_prime = (-components[1]+sqrt(delta)) / (2*components[2])
-        if delta == 0:
-            print(f"{x_prime:.6f}")
-        else:
-            x_second = (-components[1]-sqrt(delta)) / (2*components[2])
-            print(f"{x_prime:.6f}")
-            print(f"{x_second:.6f}")
+def solve_complex_solution(delta: float, components: dict) -> None:
+    real_component = -components[1] / (2 * components[2])
+    imaginary_component = math.sqrt(abs(delta)) / (2 * components[2])
+    print(f"{real_component:0.6f} + {abs(imaginary_component):.6f}i")
+    print(f"{real_component:0.6f} - {abs(imaginary_component):.6f}i")
 
+def solve_second_deg_equation(components: dict) -> None:
+    delta = components[1]**2 - 4 * components[2] * components[0]
+    if delta < 0:
+        solve_complex_solution(delta, components)
+    else:
+        x_prime = reduce_fraction(-components[1]+math.sqrt(delta), 2*components[2])
+        if delta == 0:
+            print(x_prime)
+        else:
+            x_second = reduce_fraction(-components[1]-math.sqrt(delta), 2*components[2])
+            print(x_prime)
+            print(x_second)
 
 def solve_first_deg_equation(components):
     if components[0] == 0:
         print("No solution")
     else:
         print(f"{-components[0]/components[1]:.6f}")
+
+def find_poly_deg(components: dict) -> int:
+    if components[2]:
+        return 2
+    if components[1]:
+        return 1
+    return 0
+
+def handle_solutions(components_list: dict):
+    print("Polynomial degree:", find_poly_deg(components_list))
+    print("Solution:")
+    if components_list[2] != 0:
+        solve_second_deg_equation(components_list)
+    elif components_list[1] != 0:
+        solve_first_deg_equation(components_list)
+    else:
+        if components_list[0] != 0:
+            print("No solution")
+        else:
+            print("Infinite Solutions: All real numbers")
+
+def display_reduced_function(components: dict) -> None:
+    print("Reduced form: ", end="")
+    for i in range(2, -1, -1):
+        if i != 2:
+            if components[i] > 0:
+                print(" + ", end="")
+            else:
+                print(" - ", end="")
+        if components[i] != 0:
+            print(f"{abs(components[i])} * X^{i}", end="")
+    print(" = 0")
 
 def main():
     equation = input()
@@ -227,17 +277,8 @@ def main():
         components_list = parse_input(equation)
         reverse_sign_rhs(components_list[1])
         mergeded_components_list = merge_components([*components_list[0], *components_list[1]])
-        if mergeded_components_list[2] != 0:
-            solve_second_deg_equation(mergeded_components_list)
-        elif mergeded_components_list[1] != 0:
-            solve_first_deg_equation(mergeded_components_list)
-        else:
-            if mergeded_components_list[0] != 0:
-                print("No solution")
-            else:
-                print("0")
-
-            
+        display_reduced_function(mergeded_components_list)
+        handle_solutions(mergeded_components_list)
     except Exception as e:
         print(e)
 if __name__ == "__main__":
