@@ -192,7 +192,6 @@ def parse_input(equation: str) -> list:
             raise Exception("Invalid signs in the equation")
         lhs_objs = create_components_obj(lhs_signed_components)
         rhs_objs = create_components_obj(rhs_signed_components)
-        print("steps:", [lhs_objs, rhs_objs])
         return [lhs_objs, rhs_objs]
     except Exception as e:
         raise Exception(str(e))
