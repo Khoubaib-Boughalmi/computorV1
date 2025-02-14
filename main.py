@@ -15,6 +15,9 @@ import math
 # 8 * X^0 - 6 * XX^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3
 # 8 * X^0 - 6 * CX^1 + 0 * X^2 - 5.6 * X^3 = X^0 - 3
 
+
+# 4*X+7=2
+
 """
 
     parsing mechanism ==> * validate polynomial
@@ -200,12 +203,11 @@ def reduce_fraction(numerator, denominator) -> str:
         return str(num)
     if den > 99:
         return f"{(numerator / denominator):.6f}"
-    return f"{num}/{den}"
+    return f"{abs(num)}/{abs(den)}" if num * den > 0 else f"-{abs(num)}/{abs(den)}"
 
 def reverse_sign_rhs(elements: list[dict]) -> list:
     for elem in elements:
         elem["coeff"] *= -1
-
 
 def merge_components(elements: list[dict]) -> list:
     merged_components = {0:0, 1:0, 2:0}
@@ -214,6 +216,7 @@ def merge_components(elements: list[dict]) -> list:
     return merged_components
 
 def solve_complex_solution(delta: float, components: dict) -> None:
+
     real_component = -components[1] / (2 * components[2])
     imaginary_component = math.sqrt(abs(delta)) / (2 * components[2])
     print(f"{real_component:0.6f} + {abs(imaginary_component):.6f}i")
@@ -221,6 +224,7 @@ def solve_complex_solution(delta: float, components: dict) -> None:
 
 def solve_second_deg_equation(components: dict) -> None:
     delta = components[1]**2 - 4 * components[2] * components[0]
+    print(f"Discriminant is strictly {'positive' if delta > 0 else 'negative'}, the two solutions are:")
     if delta < 0:
         solve_complex_solution(delta, components)
     else:
@@ -236,7 +240,8 @@ def solve_first_deg_equation(components):
     if components[0] == 0:
         print("No solution")
     else:
-        print(f"{-components[0]/components[1]:.6f}")
+        x_prime = reduce_fraction(-components[0], components[1])
+        print(x_prime)
 
 def find_poly_deg(components: dict) -> int:
     if components[2]:
@@ -258,12 +263,25 @@ def handle_solutions(components_list: dict):
         else:
             print("Infinite Solutions: All real numbers")
 
+def is_null_function(components: dict) -> bool:
+    isNull = True
+    for item in components:
+        if components[item] != 0:
+            isNull = False
+    return isNull
+
+# 1337 * X^2 + 42 * X^0 = 1337 * X^2 +42 * X^0
+# 4*X+7=2
 def display_reduced_function(components: dict) -> None:
     print("Reduced form: ", end="")
+    if is_null_function(components):
+        print("0 = 0")
+        return 
     for i in range(2, -1, -1):
-        if i != 2:
+        if components[i] != 0:
             if components[i] > 0:
-                print(" + ", end="")
+                if i < find_poly_deg(components):
+                    print(" + ", end="")
             else:
                 print(" - ", end="")
         if components[i] != 0:
